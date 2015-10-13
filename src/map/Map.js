@@ -520,7 +520,9 @@ L.Map = L.Evented.extend({
 		this.createPane('shadowPane');
 		this.createPane('overlayPane');
 		this.createPane('markerPane');
-		this.createPane('popupPane');
+		// put popupPane in overlayPane - z-index requirement
+		// this.createPane('popupPane');
+		this.createPane('popupPane', this._panes['overlayPane']);
 
 		if (!this.options.markerZoomAnimation) {
 			L.DomUtil.addClass(panes.markerPane, 'leaflet-zoom-hide');
