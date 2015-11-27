@@ -47,7 +47,7 @@ L.Popup = L.Layer.extend({
 
 		clearTimeout(this._removeTimeout);
 		this.getPane().appendChild(this._container);
-		this.update();
+		this.update(true);
 
 		if (map._fadeAnimated) {
 			L.DomUtil.setOpacity(this._container, 1);
@@ -86,11 +86,12 @@ L.Popup = L.Layer.extend({
 		return this._latlng;
 	},
 
-	setLatLng: function (latlng) {
+	setLatLng: function (latlng, noMove) {
 		this._latlng = L.latLng(latlng);
 		if (this._map) {
 			this._updatePosition();
-			this._adjustPan();
+			if (!noMove)
+				this._adjustPan();
 		}
 		return this;
 	},
@@ -99,9 +100,9 @@ L.Popup = L.Layer.extend({
 		return this._content;
 	},
 
-	setContent: function (content) {
+	setContent: function (content, noMove) {
 		this._content = content;
-		this.update();
+		this.update(noMove);
 		return this;
 	},
 
@@ -109,7 +110,7 @@ L.Popup = L.Layer.extend({
 		return this._container;
 	},
 
-	update: function () {
+	update: function (noMove) {
 		if (!this._map) { return; }
 
 		this._container.style.visibility = 'hidden';
@@ -120,7 +121,8 @@ L.Popup = L.Layer.extend({
 
 		this._container.style.visibility = '';
 
-		this._adjustPan();
+		if (!noMove)
+			this._adjustPan();
 	},
 
 	getEvents: function () {
@@ -317,11 +319,11 @@ L.popup = function (options, source) {
 L.Map.include({
 	openPopup: function (popup, latlng, options) { // (Popup) or (String || HTMLElement, LatLng[, Object])
 		if (!(popup instanceof L.Popup)) {
-			popup = new L.Popup(options).setContent(popup);
+			popup = new L.Popup(options).setContent(popup, true);
 		}
 
 		if (latlng) {
-			popup.setLatLng(latlng);
+			popup.setLatLng(latlng, true);
 		}
 
 		if (this.hasLayer(popup)) {
