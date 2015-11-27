@@ -21,8 +21,8 @@ L.Map.include({
 
 			// try animating pan or zoom
 			var moved = (this._zoom !== zoom) ?
-				this._tryAnimatedZoom && this._tryAnimatedZoom(center, zoom, options.zoom) :
-				this._tryAnimatedPan(center, options.pan);
+				this._tryAnimatedZoom && this._tryAnimatedZoom(center, zoom, options.zoom, ["setviewend"]) :
+				this._tryAnimatedPan(center, options.pan, ["setviewend"]);
 
 			if (moved) {
 				// prevent resize handler call, the view will refresh after animation anyway
@@ -33,15 +33,17 @@ L.Map.include({
 
 		// animation didn't start, just reset the map view
 		this._resetView(center, zoom);
-
 		return this;
 	},
 
-	panBy: function (offset, options) {
+	panBy: function (offset, options, events) {
 		offset = L.point(offset).round();
 		options = options || {};
 
 		if (!offset.x && !offset.y) {
+			for (var i in events) {
+				this.fire(events[i]);
+			}
 			return this.fire('moveend');
 		}
 		// If we pan too far, Chrome gets issues with tiles
@@ -56,7 +58,7 @@ L.Map.include({
 
 			this._panAnim.on({
 				'step': this._onPanTransitionStep,
-				'end': this._onPanTransitionEnd
+				'end': function() {this._onPanTransitionEnd(events);}
 			}, this);
 		}
 
@@ -83,19 +85,27 @@ L.Map.include({
 		this.fire('move');
 	},
 
-	_onPanTransitionEnd: function () {
+	_onPanTransitionEnd: function (events) {
 		L.DomUtil.removeClass(this._mapPane, 'leaflet-pan-anim');
 		this.fire('moveend');
+		for (var i in events) {
+			this.fire(events[i]);
+		}
 	},
 
-	_tryAnimatedPan: function (center, options) {
+	_tryAnimatedPan: function (center, options, events) {
 		// difference between the new and current centers in pixels
 		var offset = this._getCenterOffset(center)._floor();
 
 		// don't animate too far unless animate: true specified in options
-		if ((options && options.animate) !== true && !this.getSize().contains(offset)) { return false; }
+		if ((options && options.animate) !== true && !this.getSize().contains(offset)) {
+			for (var i in events) {
+				this.fire(events[i]);
+			}
+			return false;
+		}
 
-		this.panBy(offset, options);
+		this.panBy(offset, options, events);
 
 		return true;
 	}
