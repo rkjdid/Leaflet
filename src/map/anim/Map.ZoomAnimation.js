@@ -62,7 +62,7 @@ L.Map.include(!zoomAnimated ? {} : {
 		return !this._container.getElementsByClassName('leaflet-zoom-animated').length;
 	},
 
-	_tryAnimatedZoom: function (center, zoom, options) {
+	_tryAnimatedZoom: function (center, zoom, options, events) {
 
 		if (this._animatingZoom) { return true; }
 
@@ -82,13 +82,13 @@ L.Map.include(!zoomAnimated ? {} : {
 		L.Util.requestAnimFrame(function () {
 			this
 			    ._moveStart(true)
-			    ._animateZoom(center, zoom, true);
+			    ._animateZoom(center, zoom, true, undefined, events);
 		}, this);
 
 		return true;
 	},
 
-	_animateZoom: function (center, zoom, startAnim, noUpdate) {
+	_animateZoom: function (center, zoom, startAnim, noUpdate, events) {
 		if (startAnim) {
 			this._animatingZoom = true;
 
@@ -106,10 +106,10 @@ L.Map.include(!zoomAnimated ? {} : {
 		});
 
 		// Work around webkit not firing 'transitionend', see https://github.com/Leaflet/Leaflet/issues/3689, 2693
-		setTimeout(L.bind(this._onZoomTransitionEnd, this), 250);
+		setTimeout(L.bind(function() {this._onZoomTransitionEnd(events);}, this), 250);
 	},
 
-	_onZoomTransitionEnd: function () {
+	_onZoomTransitionEnd: function (events) {
 		if (!this._animatingZoom) { return; }
 
 		L.DomUtil.removeClass(this._mapPane, 'leaflet-zoom-anim');
@@ -120,7 +120,7 @@ L.Map.include(!zoomAnimated ? {} : {
 
 			this
 				._move(this._animateToCenter, this._animateToZoom)
-				._moveEnd(true);
+				._moveEnd(true, events);
 		}, this);
 	}
 });

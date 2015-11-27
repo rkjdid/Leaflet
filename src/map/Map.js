@@ -543,7 +543,7 @@ L.Map = L.Evented.extend({
 		this
 			._moveStart(zoomChanged)
 			._move(center, zoom)
-			._moveEnd(zoomChanged);
+			._moveEnd(zoomChanged, ["setviewend"]);
 
 		this.fire('viewreset');
 
@@ -576,9 +576,12 @@ L.Map = L.Evented.extend({
 		return this.fire('move', data);
 	},
 
-	_moveEnd: function (zoomChanged) {
+	_moveEnd: function (zoomChanged, events) {
 		if (zoomChanged) {
 			this.fire('zoomend');
+		}
+		for (var i in events) {
+			this.fire(events[i]);
 		}
 		return this.fire('moveend');
 	},
