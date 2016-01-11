@@ -75,6 +75,9 @@ L.Map.include({
 			this._panAnim.run(this._mapPane, newPos, options.duration || 0.25, options.easeLinearity);
 		} else {
 			this._rawPanBy(offset);
+			for (var i in events) {
+				this.fire(events[i]);
+			}
 			this.fire('move').fire('moveend');
 		}
 
